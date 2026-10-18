@@ -185,7 +185,7 @@ Antes de recibir al primer paciente:
 php artisan psicologia:verificar-aislamiento
 ```
 
-El comando comprueba cinco cosas:
+El comando comprueba seis cosas:
 
 1. Que `tenant_actual()` exista y devuelva `null` sin consultorio.
 2. Que las diecisiete tablas tengan RLS activada, **forzada**, y su política.
@@ -194,6 +194,8 @@ El comando comprueba cinco cosas:
 5. **Que una consulta sin consultorio devuelva cero filas.** Esta es la que de
    verdad importa: las otras comprueban que la medida esté puesta, y esta
    comprueba que funciona.
+6. Que el rol con el que está conectado la aplicación no sea superusuario ni
+   tenga `BYPASSRLS`. Va primero, y se consulta directo en `pg_roles`.
 
 El contenedor de la API lo corre en cada arranque. Si falla, el contenedor no
 levanta. Ver [04](04-INSTALACION.md).
@@ -404,19 +406,27 @@ php artisan psicologia:verificar-aislamiento --consultorio=<id>
 La opción `--consultorio` limita la comprobación de datos a un consultorio
 concreto.
 
-**Una diferencia que hay que conocer:** este comando **no** consulta `pg_roles`
-para revisar los atributos del rol, como sí hacen varias de las otras
-aplicaciones de Hefesto. Lo que hace es comprobar que `tenant_actual()` falla
-cerrada, que cada tabla tenga RLS activada y forzada con su política
-`<tabla>_aislamiento`, que los disparadores estén, y que una consulta sin
-consultorio fijado devuelva **cero filas**.
+**Lo que faltaba y se corrigió:** este comando **no consultaba `pg_roles`**.
+Lo que hacía era comprobar que `tenant_actual()` falla cerrada, que cada tabla
+tenga RLS activada y forzada con su política `<tabla>_aislamiento`, que los
+disparadores estén, y que una consulta sin consultorio fijado devuelva **cero
+filas**.
 
-Eso detecta un rol equivocado de forma indirecta: si la conexión fuera
+Eso detectaba un rol equivocado de forma indirecta: si la conexión fuera
 superusuario, el conteo sin consultorio devolvería filas y el comando fallaría.
-Pero la detección **depende de que haya datos**: contra una base recién
+Pero la detección **dependía de que haya datos**: contra una base recién
 instalada y vacía, el conteo sería cero y el comando pasaría sin haber detectado
-nada. Por eso conviene correrlo también con la consulta a `pg_roles` a mano,
-que es el control que aquí no está automatizado.
+nada. El fallo más grave y más silencioso quedaba en manos de una consulta a
+mano.
+
+**Ahora el comando consulta `pg_roles`**, directo por el nombre del rol, como
+primera comprobación y sin pasar por los datos de la aplicación. Falla si
+`rolsuper` o `rolbypassrls` están activos, y el mensaje explica qué se detectó,
+por qué eso anula el aislamiento, qué hacer (`POSTGRES_USER` debe ser el rol de
+arranque `psicologia_admin`, que la aplicación nunca usa, y el rol de la
+aplicación se crea `NOSUPERUSER NOBYPASSRLS` en
+`deploy/postgres/inicializar-rol.sh`) y dónde está el patrón de referencia
+(`apps/almacen/deploy/postgres/inicializar-rol.sh`).
 
 **Este comando no se ha ejecutado.** En el equipo donde se escribió este cambio
 no había PostgreSQL ni Docker. El diseño es correcto y está sostenido en la
