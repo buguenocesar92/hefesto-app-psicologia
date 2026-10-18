@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuración de PHPUnit de Psicología.
+
+    Las suites `Aislamiento` y `Permisos` están separadas a propósito:
+
+      - `Aislamiento`: un consultorio no puede leer los datos de otro. Usa Row
+        Level Security de PostgreSQL.
+      - `Permisos`: dentro del consultorio, el administrativo agenda y ve los
+        pagos pero NO lee el contenido de una sesión; una nota cerrada no se
+        edita; una derivación por crisis no se borra; y un puntaje de corte sin
+        fuente verificada no puede marcarse como verificado.
+
+    Se pueden correr solas:
+        php artisan test --testsuite=Aislamiento
+        php artisan test --testsuite=Permisos
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true"
+         beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Aislamiento">
+            <directory>tests/Feature/Aislamiento</directory>
+        </testsuite>
+        <testsuite name="Permisos">
+            <directory>tests/Feature/Permisos</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <!--
+            IMPORTANTE: la base de pruebas TIENE que ser PostgreSQL, no SQLite.
+
+            El aislamiento entre consultorios está implementado con Row Level
+            Security, que es una función de PostgreSQL. En SQLite estas pruebas
+            pasarían sin comprobar nada: un sistema sin aislamiento alguno
+            también daría verde, porque SQLite no tiene RLS que lo niegue.
+
+            Lo mismo vale para las pruebas de permisos: la regla de "una nota
+            cerrada no se edita" y "una derivación no se borra" está puesta
+            además con disparadores en PostgreSQL, y SQLite no los tiene.
+
+            Esto ya se detectó en otro proyecto de Hefesto y se deja escrito para
+            que no se repita. Ver docs/10.
+        -->
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_DATABASE" value="psicologia_test"/>
+    </php>
+</phpunit>

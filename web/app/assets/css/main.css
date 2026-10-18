@@ -1,0 +1,327 @@
+/*
+    Hoja de estilos de Psicologia.
+
+    POR QUE UNA SOLA HOJA Y NO UN SISTEMA DE ESTILOS
+    ----------------------------------------------
+    Porque la aplicación tiene pocas pantallas y ninguna necesita una biblioteca
+    de estilos. Una hoja con variables y unas pocas clases alcanza, y evita
+    una dependencia que hay que auditar en una aplicación que maneja datos
+    sensibles.
+
+    LA REGLA DE COLOR
+    -----------------
+    Tres colores con significado, y ninguno decorativo:
+
+      - `--color-tenant`: lo que sí puede ver este rol.
+      - `--color-restringido`: lo que no puede ver, pero existe.
+      - `--color-alerta`: lo que necesita atención ahora.
+
+    Un bloque `--color-restringido` no es un error: es una explicación. La
+    pantalla dice "esto no lo ve usted, y esto es por qué". Ver docs/03.
+*/
+
+:root {
+    --color-fondo: #f6f7f9;
+    --color-superficie: #ffffff;
+    --color-borde: #d9dde3;
+    --color-texto: #1d2430;
+    --color-texto-suave: #5b6675;
+
+    /* Lo que este rol puede ver. */
+    --color-tenant: #2f5d8a;
+
+    /* Lo que existe pero este rol no puede ver. Nunca es un error. */
+    --color-restringido: #6b7280;
+    --color-restringido-fondo: #eef0f3;
+
+    /* Lo que necesita atención ahora. */
+    --color-alerta: #9a3412;
+    --color-alerta-fondo: #fdf1e7;
+
+    /* Lo que está verificado contra su fuente. */
+    --color-verificado: #1f6b42;
+    --color-verificado-fondo: #e9f5ee;
+
+    --radio: 6px;
+    --sombra: 0 1px 2px rgb(29 36 48 / 8%);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+a {
+    color: var(--color-tenant);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Estructura                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.aplicacion {
+    min-height: 100vh;
+}
+
+.contenedor {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+}
+
+.barra-superior {
+    background-color: var(--color-superficie);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.barra-superior__contenido {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.barra-superior__marca {
+    font-weight: 700;
+    color: var(--color-texto);
+    text-decoration: none;
+}
+
+.barra-superior__consultorio {
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
+}
+
+.barra-superior__sesion {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.menu {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.menu__enlace {
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--radio);
+    text-decoration: none;
+    color: var(--color-texto);
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+}
+
+.menu__enlace--activo {
+    background-color: var(--color-tenant);
+    border-color: var(--color-tenant);
+    color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tarjetas                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.tarjeta {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tarjeta__titulo {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+}
+
+.rejilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.cifra {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Explicación de permisos                                                    */
+/*                                                                            */
+/* Esto es lo que hace la aplicación se explains a sí misma. Un bloque          */
+/* restringido no es un error de la pantalla: es la respuesta a "¿por qué no    */
+/* veo esto?". Ver docs/03.                                                     */
+/* -------------------------------------------------------------------------- */
+
+.restringido {
+    border: 1px dashed var(--color-restringido);
+    background-color: var(--color-restringido-fondo);
+    border-radius: var(--radio);
+    padding: 0.9rem 1rem;
+    color: var(--color-texto-suave);
+}
+
+.restringido__titulo {
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+    color: var(--color-restringido);
+}
+
+.alerta {
+    border: 1px solid var(--color-alerta);
+    background-color: var(--color-alerta-fondo);
+    border-radius: var(--radio);
+    padding: 0.9rem 1rem;
+    color: var(--color-alerta);
+}
+
+.verificado {
+    border: 1px solid var(--color-verificado);
+    background-color: var(--color-verificado-fondo);
+    border-radius: var(--radio);
+    padding: 0.7rem 0.9rem;
+}
+
+.aviso {
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tablas                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-superficie);
+    font-size: 0.92rem;
+}
+
+.tabla th,
+.tabla td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--color-borde);
+    vertical-align: top;
+}
+
+.tabla th {
+    color: var(--color-texto-suave);
+    font-weight: 600;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Formularios                                                                */
+/* -------------------------------------------------------------------------- */
+
+.campo {
+    display: block;
+    margin-bottom: 0.9rem;
+}
+
+.campo__etiqueta {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.campo__ayuda {
+    display: block;
+    color: var(--color-texto-suave);
+    font-size: 0.82rem;
+    margin-top: 0.2rem;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    background-color: var(--color-superficie);
+    color: inherit;
+    font: inherit;
+}
+
+textarea {
+    min-height: 14rem;
+    line-height: 1.55;
+}
+
+.boton {
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radio);
+    border: 1px solid var(--color-tenant);
+    background-color: var(--color-tenant);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+}
+
+.boton--neutro {
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    border-color: var(--color-borde);
+}
+
+.boton--peligro {
+    background-color: var(--color-alerta);
+    border-color: var(--color-alerta);
+}
+
+.boton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.fila-botones {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.8rem;
+}
+
+.etiqueta-estado {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    border: 1px solid var(--color-borde);
+    background-color: var(--color-superficie);
+}
+
+.etiqueta-estado--abierta {
+    border-color: var(--color-tenant);
+    color: var(--color-tenant);
+}
+
+.etiqueta-estado--cerrada {
+    border-color: var(--color-restringido);
+    color: var(--color-restringido);
+}
+
+.campo-busca {
+    max-width: 22rem;
+    margin-bottom: 1rem;
+}

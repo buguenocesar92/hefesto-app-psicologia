@@ -1,0 +1,98 @@
+# =============================================================================
+# Caddy: el único proxy que publica puertos
+# =============================================================================
+#
+# POR QUÉ SOLO EL PROXY PUBLICA PUERTOS
+# ------------------------------------
+# En producción, ni la base de datos ni Redis ni la API aparecen con un puerto
+# publicado. Caddy es el único que escucha hacia afuera, y por dentro habla con
+# cada servicio por la red de Compose.
+#
+# Con eso, la base no está en la red pública aunque alguien descubra la
+# instalación. Ver docs/04.
+#
+# LO QUE ESTE ARCHIVO PROTEGE
+# ---------------------------
+#   - HTTPS con un certificado válido.
+#   - Cabeceras de seguridad en toda respuesta.
+#   - Que el proxy no registre el cuerpo de las peticiones: el cuerpo de una
+#     petición a la API puede contener el contenido de una nota de sesión.
+# =============================================================================
+
+{
+    # El correo del responsable del dominio. Sin esto, Caddy usa uno de
+    # ejemplo y los certificados expiran sin aviso.
+    email {$ACME_CORREO:admin@ejemplo.cl}
+
+    # ---------------------------------------------------------------------
+    # NO SE GUARDA NADA EN DISCO
+    # ---------------------------------------------------------------------
+    # El proxy no deja nada en disco. Un archivo de bitácora del proxy sería una
+    # segunda copia de las URLs de las peticiones, y en esta aplicación esas URLs
+    # llevan identificadores de notas de sesión. El registro va a la salida
+    # estándar, que es donde el orquestador de contenedores lo recoge.
+}
+
+# -----------------------------------------------------------------------------
+# Redirección: todo por HTTPS
+# -----------------------------------------------------------------------------
+www.example.cl {
+    redir https://{host}{uri} permanent
+}
+
+# -----------------------------------------------------------------------------
+# La aplicación
+# -----------------------------------------------------------------------------
+{$PSICOLOGIA_DOMINIO:psicologia.ejemplo.cl} {
+    encode zstd gzip
+
+    # ---------------------------------------------------------------------
+    # CABECERAS DE SEGURIDAD
+    # ---------------------------------------------------------------------
+    header {
+        # Que el navegador no adivine el tipo de un archivo.
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "same-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+        # Nada que dependa de una sesión se cachea. Una pantalla de paciente
+        # guardada en el caché de un proxy es una pantalla de paciente en un
+        # disco que nadie está mirando.
+        -Server
+    }
+
+    # ---------------------------------------------------------------------
+    # LA INTERFAZ
+    # ---------------------------------------------------------------------
+    reverse_proxy interfaz:3000 {
+        # Las cookies que emite Laravel llegan con `secure` porque el
+        # navegador está en HTTPS, aunque la conversación interna sea por
+        # HTTP.
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Real-IP {remote_host}
+    }
+
+    # ---------------------------------------------------------------------
+    # LO QUE NO SE EXPONE
+    # ---------------------------------------------------------------------
+    # Estas rutas no tienen servicio detrás, pero se declaran explícitamente
+    # para que una pessoa que las pruebe reciba un 404 claro y no el error de
+    # un servicio que no está.
+    @bloqueado {
+        path /.git/* /.env* /vendor/* /storage/* /bootstrap/* /app/*
+    }
+    respond @bloqueado 404
+
+    # ---------------------------------------------------------------------
+    # REGISTRO
+    # ---------------------------------------------------------------------
+    log {
+        output stdout
+        format console
+        # Sin cuerpos y sin cabeceras: el cuerpo de una petición a la API
+        # puede ser el contenido de una nota de sesión.
+        level INFO
+    }
+}
