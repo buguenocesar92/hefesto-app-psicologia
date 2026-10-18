@@ -153,21 +153,4 @@ class Usuario extends Authenticatable
     {
         return $this->hasMany(Acceso::class);
     }
-
-    /**
-     * El motivo por el que esta persona no puede abrir el contenido de una
-     * sesión, si no puede.
-     *
-     * Se devuelve para que la interfaz lo muestre. Una pantalla que dice
-     * "no tiene permiso" sin decir por qué obliga a la persona a preguntar,
-     * y en este caso la pregunta es siempre la misma.
-     */
-    public function motivoDeFaltaDeAcceso(): ?string
-    {
-        if (! $this->esTratante()) {
-            return $this->rol?->accesoAlContenidoDeSesion();
-        }
-
-        return null;
-    }
 }
